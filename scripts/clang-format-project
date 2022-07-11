@@ -1,0 +1,75 @@
+#!/bin/bash
+#
+# clang-format wrapper to format this project
+#
+# Minimal clang-format version: 10.0
+#
+
+# SDIR store this script path
+SDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# PDIR store this project path
+PDIR="${SDIR}/.."
+
+# Target dirs
+TDIR=(
+    "$PDIR"
+)
+
+# Variable that will hold the name of the clang-format command
+FMT=""
+
+# NOTE: Minimal clang-format version is 10.0
+for clangfmt in clang-format{,-{10}}; do
+    if which "$clangfmt" &>/dev/null; then
+        FMT="$clangfmt"
+        break
+    fi
+done
+
+for clangfmt in clang-format{,-{10}.{9,8,7,6,5,4,3,2,1,0}}; do
+    if which "$clangfmt" &>/dev/null; then
+        FMT="$clangfmt"
+        break
+    fi
+done
+
+# Check if we found a working clang-format
+if [ -z "$FMT" ]; then
+    echo "failed to find clang-format, please goto https://apt.llvm.org/ and install clang-foramt-10"
+    exit 1
+fi
+
+# Find a dominating file, starting from a given directory and going up.
+find-dominating-file() {
+    if [ -r "$1"/"$2" ]; then
+        return 0
+    fi
+    if [ "$1" = "/" ]; then
+        return 1
+    fi
+    find-dominating-file "$(realpath "$1"/..)" "$2"
+    return $?
+}
+
+# Run clang-format -i on all of the things
+for dir in "${TDIR[@]}"; do
+    if [ -d "${dir}" ]; then
+	pushd "${dir}" &>/dev/null
+	if ! find-dominating-file . .clang-format; then
+            echo "Failed to find dominating .clang-format starting at $PWD"
+            continue
+	fi
+	find . \
+             \( -name '*.c' \
+             -o -name '*.cc' \
+             -o -name '*.cpp' \
+             -o -name '*.h' \
+             -o -name '*.hh' \
+             -o -name '*.hpp' \) \
+             -exec "${FMT}" -i '{}' \;
+	popd &>/dev/null
+    else
+	echo "Dir ${dir} not exist, skipped ..."
+    fi
+done
