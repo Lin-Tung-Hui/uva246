@@ -19,7 +19,7 @@ public:
     void init();
     bool record();
     bool check(std::deque< int > &);
-    int place(int &pos);
+    int place_card(int &pos);
     std::string game_result();
 
 private:
@@ -82,20 +82,19 @@ bool Game::check(std::deque< int > &q)
     return false;
 }
 
-int Game::place(int &pos)
+int Game::place_card(int &pos)
 {
     while (pile_[pos].empty())
         pos = (pos + 1) % 7;
-    pile_[pos].push_back(hand_.front()), hand_.pop_front();
+
+    pile_[pos].push_back(hand_.front());
+    hand_.pop_front();
 
     if (!record())
         return -1;
 
     while (check(pile_[pos]))
         ;
-
-    if (hand_.empty())
-        return 0;
 
     return 1;
 }
@@ -110,20 +109,21 @@ std::string Game::game_result()
             result = "Win : ";
             break;
         }
-        int c = place(pos);
 
-        if (c == -1) {
+        if (place_card(pos) == -1) {
             result = "Draw: ";
             break;
-        } else if (!c) {
+        }
+
+        if (hand_.empty()) {
             times++;
             result = "Loss: ";
             break;
         }
-        ++times, pos = (pos + 1) % 7;
+        ++times;
+        pos = (pos + 1) % 7;
     }
     result += std::to_string(times);
-
     result += "\n";
     return result;
 }
