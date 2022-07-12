@@ -10,7 +10,7 @@ class Game
 {
 public:
     Game(std::deque< int > &hand)
-        : hand_(hand)
+        : hand_(hand), pos_(0)
     {
         init();
     };
@@ -19,13 +19,14 @@ public:
     void init();
     bool record();
     bool check(std::deque< int > &);
-    int place_card(int &pos);
+    bool place_card();
     std::string game_result();
 
 private:
     std::deque< int > hand_;
     std::deque< int > pile_[7];
     std::map< State, bool > hand_record;
+    int pos_;
 };
 
 void Game::init()
@@ -82,46 +83,47 @@ bool Game::check(std::deque< int > &q)
     return false;
 }
 
-int Game::place_card(int &pos)
+bool Game::place_card()
 {
-    while (pile_[pos].empty())
-        pos = (pos + 1) % 7;
+    while (pile_[pos_].empty())
+        pos_ = (pos_ + 1) % 7;
 
-    pile_[pos].push_back(hand_.front());
+    pile_[pos_].push_back(hand_.front());
     hand_.pop_front();
 
     if (!record())
-        return -1;
+        return false;
 
-    while (check(pile_[pos]))
-        ;
+    while (true) {
+        if (!check(pile_[pos_]))
+            break;
+    }
+    pos_ = (pos_ + 1) % 7;
 
-    return 1;
+    return true;
 }
 
 std::string Game::game_result()
 {
     std::string result;
     int times = 7, pos = 0;
-    while (1) {
+    while (true) {
+
+        if (!place_card()) {
+            result = "Draw: ";
+            break;
+        }
+        times++;
 
         if (hand_.size() == 52) {
             result = "Win : ";
             break;
         }
 
-        if (place_card(pos) == -1) {
-            result = "Draw: ";
-            break;
-        }
-
         if (hand_.empty()) {
-            times++;
             result = "Loss: ";
             break;
         }
-        ++times;
-        pos = (pos + 1) % 7;
     }
     result += std::to_string(times);
     result += "\n";
@@ -149,7 +151,6 @@ void uva246(std::istream &is, std::ostream &os)
 
 int main(int argc, char **argv)
 {
-
 #ifdef GTEST
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
