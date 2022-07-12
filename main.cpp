@@ -1,8 +1,8 @@
-#include <string>
-#include <stack>
-#include <deque>
 #include <iostream>
-#include <sstream>
+#include <string>
+#include <vector>
+#include <deque>
+#include <map>
 
 //#define GTEST
 typedef std::vector< std::deque< int > > State;
