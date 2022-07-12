@@ -20,7 +20,7 @@ public:
     bool record();
     bool check(std::deque< int > &);
     int place(int &pos);
-    std::string play();
+    std::string game_result();
 
 private:
     std::deque< int > hand_;
@@ -42,15 +42,15 @@ bool Game::record()
     for (int i = 0; i < 7; i++)
         tmp.push_back(pile_[i]);
     if (hand_record[tmp])
-        return 0;
-    hand_record[tmp] = 1;
-    return 1;
+        return false;
+    hand_record[tmp] = true;
+    return true;
 }
 
 bool Game::check(std::deque< int > &q)
 {
     if (q.size() < 3)
-        return 0;
+        return false;
     int first = q.front(), last = q.back();
     q.pop_front(), q.pop_back();
     if (first + q.front() + last == 10 || first + q.front() + last == 20 || first + q.front() + last == 30) {
@@ -58,14 +58,14 @@ bool Game::check(std::deque< int > &q)
         hand_.push_back(q.front());
         hand_.push_back(last);
         q.pop_front();
-        return 1;
+        return true;
     }
     if (first + q.back() + last == 10 || first + q.back() + last == 20 || first + q.back() + last == 30) {
         hand_.push_back(first);
         hand_.push_back(q.back());
         hand_.push_back(last);
         q.pop_back();
-        return 1;
+        return true;
     }
     q.push_front(first);
     first = q.back();
@@ -76,21 +76,23 @@ bool Game::check(std::deque< int > &q)
         hand_.push_back(first);
         hand_.push_back(last);
         q.pop_back();
-        return 1;
+        return true;
     }
     q.push_back(first), q.push_back(last);
-    return 0;
+    return false;
 }
+
 int Game::place(int &pos)
 {
     while (pile_[pos].empty())
         pos = (pos + 1) % 7;
     pile_[pos].push_back(hand_.front()), hand_.pop_front();
+
     if (!record())
         return -1;
-    if (pile_[pos].size() > 2)
-        while (check(pile_[pos]))
-            ;
+
+    while (check(pile_[pos]))
+        ;
 
     if (hand_.empty())
         return 0;
@@ -98,7 +100,7 @@ int Game::place(int &pos)
     return 1;
 }
 
-std::string Game::play()
+std::string Game::game_result()
 {
     std::string result;
     int times = 7, pos = 0;
@@ -139,7 +141,7 @@ void uva246(std::istream &is, std::ostream &os)
         }
 
         Game game(hand);
-        os << game.play();
+        os << game.game_result();
 
         hand.clear();
     }
