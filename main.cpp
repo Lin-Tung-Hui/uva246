@@ -31,8 +31,10 @@ private:
 
 void Game::init()
 {
-    for (int i = 0; i < 7; i++)
-        pile_[i].push_back(hand_.front()), hand_.pop_front();
+    for (int i = 0; i < 7; i++) {
+        pile_[i].push_back(hand_.front());
+        hand_.pop_front();
+    }
     record();
 }
 
@@ -53,7 +55,10 @@ bool Game::check(std::deque< int > &q)
     if (q.size() < 3)
         return false;
     int first = q.front(), last = q.back();
-    q.pop_front(), q.pop_back();
+
+    q.pop_front();
+    q.pop_back();
+
     if (first + q.front() + last == 10 || first + q.front() + last == 20 || first + q.front() + last == 30) {
         hand_.push_back(first);
         hand_.push_back(q.front());
